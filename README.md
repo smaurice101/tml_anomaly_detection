@@ -13,11 +13,10 @@ Pre-requisites:
 # Toronto, Ontario Canada
 # For help email: support@otics.ca 
 
-# Produce Data to Kafka Cloud
+# import Python Libraries
 import maads
 import nest_asyncio
 import json
-import random
 
 nest_asyncio.apply()
 
@@ -25,9 +24,15 @@ nest_asyncio.apply()
 
 
 ```python
-# Set Global Host/Port for VIPER - You may change this to fit your configuration
+# Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
+# VIPER and HPDE
 VIPERHOST="http://192.168.0.13"
 VIPERPORT=8000
+hpdehost="http://192.168.0.13"
+hpdeport=8001
+
+# Set Global variable for Viper confifuration file - change the folder path for your computer
+viperconfigfile="C:/MAADS/Golang/go/bin/viper.env"
 
 #############################################################################################################
 #                                      STORE VIPER TOKEN
@@ -41,13 +46,9 @@ def getparams():
      return VIPERTOKEN
 
 VIPERTOKEN=getparams()
-#############################################################################################################
-```
 
-
-```python
 #############################################################################################################
-#                                     CREATE TOPICS IN KAFKA
+#                                     JOIN DATA STREAMS 
 
 # Set personal data
 companyname="OTICS Advanced Analytics"
@@ -55,6 +56,8 @@ myname="Sebastian"
 myemail="Sebastian.Maurice"
 mylocation="Toronto"
 
+# Joined topic name
+joinedtopic="joined-viper-test15"
 # Replication factor for Kafka redundancy
 replication=3
 # Number of partitions for joined topic
@@ -71,102 +74,229 @@ brokerport=-999
 # empty then no reverse proxy is being used
 microserviceid=''
 
-description="test data"
-producetotopic="viperdependentvariable"
-result3=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,
-                               myname,myemail,mylocation,description,enabletls,
-                               brokerhost,brokerport,numpartitions,replication,
-                               microserviceid)
-y = json.loads(result3)
-producetotopic=y['Topic']
-producerid1=y['ProducerId']
-print(producerid1)
+streamstojoin="""viperdependentvariable,viperindependentvariable1,viperindependentvariable2,textdata1,textdata2"""
 
+description="Topic containing joined streams for Anomaly training"
 
-# First Create a topic to produce to
-producetotopic="viperindependentvariable1"
-result3=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,
-                               myname,myemail,mylocation,description,enabletls,
-                               brokerhost,brokerport,numpartitions,replication,
-                               microserviceid)
-y = json.loads(result3)
-producetotopic=y['Topic']
-producerid2=y['ProducerId']
-print(producerid2)
+# Call MAADS python function to create joined stream topic
+result=maads.vipercreatejointopicstreams(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedtopic,
+                    streamstojoin,companyname,myname,myemail,description,mylocation,
+                    enabletls,brokerhost,brokerport,replication,numpartitions,microserviceid)
 
+# Print the returned results
+print(result)
+# Load the results in JSON object and extract the producer ID
+y = json.loads(result)
+topic=y['Topic']
+producerid=y['ProducerId']
 
-# First Create a topic to produce to
-producetotopic="viperindependentvariable2"
-result3=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,
-                               myname,myemail,mylocation,description,enabletls,
-                               brokerhost,brokerport,numpartitions,replication,
-                               microserviceid)
-y = json.loads(result3)
-producetotopic=y['Topic']
-producerid3=y['ProducerId']
-print(producerid3)
-
-# First Create a topic to produce to
-producetotopic="textdata1"
-result3=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,
-                               myname,myemail,mylocation,description,enabletls,
-                               brokerhost,brokerport,numpartitions,replication,
-                               microserviceid)
-y = json.loads(result3)
-producetotopic=y['Topic']
-producerid4=y['ProducerId']
-print(producerid4)
-
-# First Create a topic to produce to
-producetotopic="textdata2"
-result3=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,
-                               myname,myemail,mylocation,description,enabletls,
-                               brokerhost,brokerport,numpartitions,replication,
-                               microserviceid)
-y = json.loads(result3)
-producetotopic=y['Topic']
-producerid5=y['ProducerId']
-print(producerid5)
-```
-
-    ProducerId-vTXnd4FJqfmBahbLPMjjFxIrvUqR11
-    ProducerId-iq2YUiU6IbIzAOsAlTI95njaaHyWgk
-    ProducerId-GEjx2o7jkfA4aezkEnGCowGlt2yTv0
-    ProducerId-ULfsIr3jwn-I3Gvf7sCMLmULOwNMdl
-    ProducerId-0fa7s8Fojf2Qkv1kDIIF5w1tVxuVVV
-    
-
-
-```python
 #############################################################################################################
-#                                     PRODUCE External Value to TOPIC
-# produce to Topic streams
+#                                    PRODUCE TO TOPIC STREAM
 
-topics=["viperdependentvariable","viperindependentvariable1","viperindependentvariable2","textdata1","textdata2"]
-producerids=[producerid1,producerid2,producerid3,producerid4,producerid5]
+# Roll back each data stream by 50 offsets - change this to a larger number if you want more data
+rollbackoffsets=50
+# Go to the last offset of each stream: If lastoffset=500, then this function will rollback the 
+# streams to offset=500-50=450
+startingoffset=-1
+# Max wait time for Kafka to response on milliseconds - you can increase this number if
+# Kafka takes longer to response.  Here we tell the functiont o wait 10 seconds
+delay=10000
+# Call the Python function to produce data from all the streams
+result2=maads.viperproducetotopicstream(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedtopic,producerid,
+                                        startingoffset,rollbackoffsets,enabletls,delay,brokerhost,
+                                        brokerport,microserviceid)
 
-tx1=["One advanced","diverted", "domestic repeated bringing you old.", "Possible", "procured trifling laughter", "thoughts"]
-    
-# change this number to whatever you wish - note cloud charges may apply
-numberofdatapoints=100
+# You can print the data - but it could be large amount of data 
+print(result2)
+# The function returns a JSON object - you can load it in a Python variable
+# and store in the variable of your choosing - I chose Y
+y = json.loads(result2)
 
-for j in range(numberofdatapoints):  
-    for t,p in zip(topics,producerids):
-      if t!="textdata1" and t!="textdata2":  
-        num=str(random.randrange(1000)) 
-        result=maads.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,t,p,1,1000,'','', '',0,num)
-      else:
-        # write text data
-         num1=random.randrange(5)
-         result=maads.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,t,p,1,1000,'','', '',0,tx1[num1])
-        
-        
-    #print(result)
-    
-    
-```
+# Get the partition by iterating through the JSON groups
+for elements in y:
+  try:
+    if 'Partition' in elements:
+       stream_partition=elements['Partition'] 
+  except Exception as e:
+    continue
 
+#############################################################################################################
+#                                     SETUP TOPICS FOR PEER GROUP ANALYSIS
 
-```python
+description="Topic needed for peer group analysis"
+# Create a topic that will store peer group data
+producetotopic="anomalydatatest10"
+result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,myname,
+                               myemail,mylocation,description,enabletls,
+                               brokerhost,brokerport,numpartitions,replication,microserviceid)
+# Load the JSON
+y = json.loads(result)
+topic=y['Topic']
+# Get the producer id for this topic and save it in a variable
+produceridmain=y['ProducerId']
+print(produceridmain)
+
+# Create another topic to store the peer groups for anomaly prediction
+peergrouptotopic="anomalypeergroup"
+result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,peergrouptotopic,companyname,
+                              myname,myemail,mylocation,description,enabletls,
+                              brokerhost,brokerport,numpartitions,replication,microserviceid)
+y = json.loads(result)
+topic=y['Topic']
+# Get the producer id for this topic
+produceridpeergroup=y['ProducerId']
+print(produceridpeergroup)
+
+# Subscribe consumer to the topic just created with some information about yourself
+# If subscribing to a group and add group id here
+groupid=''
+description="This is a subscription for peer group analysis"
+result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,
+                                    myname,myemail,mylocation,description,
+                                    brokerhost,brokerport,groupid,microserviceid)
+print(result)
+# Load result in JSON object and extract the consumer id
+y = json.loads(result)
+consumeridproduceto=y['Consumerid']
+print(consumeridproduceto)
+
+consumefrom = joinedtopic
+description="This is a subscription to consume from joined topic stream"
+result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,companyname,
+                                    myname,myemail,mylocation,description,
+                                    brokerhost,brokerport,groupid,microserviceid)
+print(result)
+# Load the JSON and extract the consumer id
+y = json.loads(result)
+consumeridmain=y['Consumerid']
+consumeridjoinedtopic=consumeridmain
+print(consumeridmain,consumeridjoinedtopic)
+
+#############################################################################################################
+#                                     START ANOMALY TRAINING 
+# name the topic to produce to
+produceto = producetotopic
+# name the topic to produce peer group to
+producepeergroupto = peergrouptotopic
+# Assign the producer id of the peer group topic
+produceridpeergroup=produceridpeergroup
+# Assign the consumer id of the produceto topic
+consumeridproduceto=consumeridproduceto
+# Identify the streams to analyse for Anomalies
+streamstoanalyse="viperdependentvariable,viperindependentvariable1,viperindependentvariable2,textdata1,textdata2"
+# Assign the consumer id of the topic you are consuming the data for peer group analysis
+consumerid=consumeridmain
+# Assign the producer id you want to produce results to 
+producerid=produceridmain
+# Choose your flags for each of the stream variables
+flags="""topic=viperdependentvariable,topictype=numeric,threshnumber=300,lag=5,zthresh=2.5,
+influence=0.5~topic=viperindependentvariable1,topictype=numeric,threshnumber=300,lag=5,zthresh=2.5,
+influence=0.5~topic=viperindependentvariable2,topictype=numeric,threshnumber=300,lag=5,zthresh=2.5,
+influence=0.9~topic=textdata1,topictype=string,threshnumber=10~topic=textdata2,topictype=string,
+threshnumber=.80"""
+# Enable SSL/TLS
+enabletls=1
+# Assign the partition you extracted from the function: viperproducetotopicstream
+partition=stream_partition
+
+# Start Anomaly training 
+result1=maads.viperanomalytrain(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,produceto,
+                        producepeergroupto,produceridpeergroup,
+                        consumeridproduceto, streamstoanalyse,companyname,consumerid,
+                        producerid,flags,hpdehost,viperconfigfile, enabletls,partition,
+                        hpdeport)
+print(result1)
+# Load the JSON results and get the partition Kafka stored the peer groups to
+y = json.loads(result1)
+anomalytrain_partition=y['Partition'] 
+
+print("anomalytrain_partition=",anomalytrain_partition)
+
+############################################################################################################
+#                                     SETUP TO PREDICT ANOMALIES
+
+# Assign the name of the topic to consume the peer groups from
+consumefrom = "anomalypeergroup"
+result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,companyname,
+                                    myname,myemail,mylocation,description,
+                                    brokerhost,brokerport,groupid,microserviceid)
+print(result)
+# Load the JSON object and extract the consumer id
+y = json.loads(result)
+consumeridmainpredict=y['Consumerid']
+print(consumeridmainpredict)
+
+# Create a topic to store the anomaly results to- USE THIS TOPIC (anomalydataresults)
+# FOR VIPERviz visualization
+produceto="anomalydataresults"
+description="Topic to store the anomaly results"
+result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,produceto,companyname,myname,
+                               myemail,mylocation,description,enabletls,
+                               brokerhost,brokerport,numpartitions,replication,microserviceid)
+# Load the JSON and extract the producer id
+y = json.loads(result)
+topic=y['Topic']
+produceridmainpredict=y['ProducerId']
+print(produceridmainpredict)
+
+# Subscribe to the anomaly data results - YOU CAN USE THIS CONSUMER ID 
+# IN VIPERviz visualization
+result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,produceto,companyname,
+                                    myname,myemail,mylocation,description,
+                                    brokerhost,brokerport,groupid,microserviceid)
+print(result)
+# Load the JSON and extract the consumer id
+y = json.loads(result)
+consumeridproducetopredict=y['Consumerid']
+print(consumeridproducetopredict)
+
+# Get the input stream topic - this is the topic in the function viperproducetotopicstream
+consumeinputstream = joinedtopic
+# Create a topic for the input stream - this is your test data for anomaly detection
+produceinputstreamtest="inputstreamdata"
+result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,produceinputstreamtest,
+                              companyname,myname,myemail,mylocation,description,
+                              enabletls,brokerhost,brokerport,
+                              numpartitions,replication,microserviceid)
+# Load the JSON and get the producer id
+y = json.loads(result)
+topic=y['Topic']
+produceridinputstreamtestpredict=y['ProducerId']
+print(produceridinputstreamtestpredict)
+
+############################################################################################################
+#                                     START ANOMALY PREDICTION
+
+# Name the topic to produce to
+consumeridproduceto=consumeridproducetopredict
+# Streams to analyse - we are analysing 5 streams - you can use any amount of streams
+streamstoanalyse="""viperdependentvariable,viperindependentvariable1,viperindependentvariable2,
+textdata1,textdata2"""
+
+# Assign variables
+consumerid=consumeridmainpredict
+producerid=produceridmainpredict
+
+# Specify flags 
+flags="""flags=riskscore=.4~complete=or~type=or,topic=viperdependentvariable,topictype=numeric,
+sc>500~type=and,topic=viperindependentvariable1,topictype=numeric,v1<100,sc>100~
+type=or,topic=textdata1,topictype=string,stringcontains=1,v2=valueany,sc>.6~type=or,
+topic=textdata2,topictype=string,stringcontains=0,v2=Failed Record^Failed Record^test record,
+sc>.210~type=or,topic=viperindependentvariable2,topictype=numeric,v1<100,sc>1000"""
+
+produceridinputstreamtest=produceridinputstreamtestpredict
+consumeridinputstream=consumeridjoinedtopic
+
+# Predict Anomalies
+result2=maads.viperanomalypredict(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,produceto,
+                                  consumeinputstream,produceinputstreamtest,
+                                  produceridinputstreamtest, streamstoanalyse, 
+                                  consumeridinputstream,companyname,consumeridmainpredict,
+                                  producerid,flags,hpdehost,viperconfigfile,enabletls,
+                                  anomalytrain_partition, hpdeport)
+
+print(result2)
+
+ 
 
 ```
