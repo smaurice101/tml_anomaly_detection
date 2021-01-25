@@ -15,9 +15,13 @@ Pre-requisites:
 
 # import Python Libraries
 import maads
+
+# You may need to comment this out if NOT using jupyter notebook
 import nest_asyncio
+
 import json
 
+# You may need to comment this out if NOT using jupyter notebook
 nest_asyncio.apply()
 
 # Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
