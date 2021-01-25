@@ -20,10 +20,6 @@ import json
 
 nest_asyncio.apply()
 
-```
-
-
-```python
 # Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
 # VIPER and HPDE
 VIPERHOST="http://192.168.0.13"
@@ -86,7 +82,10 @@ result=maads.vipercreatejointopicstreams(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedto
 # Print the returned results
 print(result)
 # Load the results in JSON object and extract the producer ID
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 topic=y['Topic']
 producerid=y['ProducerId']
 
@@ -102,15 +101,17 @@ startingoffset=-1
 # Kafka takes longer to response.  Here we tell the functiont o wait 10 seconds
 delay=10000
 # Call the Python function to produce data from all the streams
-result2=maads.viperproducetotopicstream(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedtopic,producerid,
+result=maads.viperproducetotopicstream(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedtopic,producerid,
                                         startingoffset,rollbackoffsets,enabletls,delay,brokerhost,
                                         brokerport,microserviceid)
 
 # You can print the data - but it could be large amount of data 
-print(result2)
 # The function returns a JSON object - you can load it in a Python variable
 # and store in the variable of your choosing - I chose Y
-y = json.loads(result2)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 
 # Get the partition by iterating through the JSON groups
 for elements in y:
@@ -130,7 +131,10 @@ result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,comp
                                myemail,mylocation,description,enabletls,
                                brokerhost,brokerport,numpartitions,replication,microserviceid)
 # Load the JSON
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 topic=y['Topic']
 # Get the producer id for this topic and save it in a variable
 produceridmain=y['ProducerId']
@@ -141,7 +145,10 @@ peergrouptotopic="anomalypeergroup"
 result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,peergrouptotopic,companyname,
                               myname,myemail,mylocation,description,enabletls,
                               brokerhost,brokerport,numpartitions,replication,microserviceid)
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 topic=y['Topic']
 # Get the producer id for this topic
 produceridpeergroup=y['ProducerId']
@@ -156,7 +163,10 @@ result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopi
                                     brokerhost,brokerport,groupid,microserviceid)
 print(result)
 # Load result in JSON object and extract the consumer id
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 consumeridproduceto=y['Consumerid']
 print(consumeridproduceto)
 
@@ -167,7 +177,10 @@ result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,c
                                     brokerhost,brokerport,groupid,microserviceid)
 print(result)
 # Load the JSON and extract the consumer id
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 consumeridmain=y['Consumerid']
 consumeridjoinedtopic=consumeridmain
 print(consumeridmain,consumeridjoinedtopic)
@@ -200,14 +213,16 @@ enabletls=1
 partition=stream_partition
 
 # Start Anomaly training 
-result1=maads.viperanomalytrain(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,produceto,
+result=maads.viperanomalytrain(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,produceto,
                         producepeergroupto,produceridpeergroup,
                         consumeridproduceto, streamstoanalyse,companyname,consumerid,
                         producerid,flags,hpdehost,viperconfigfile, enabletls,partition,
                         hpdeport)
-print(result1)
 # Load the JSON results and get the partition Kafka stored the peer groups to
-y = json.loads(result1)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 anomalytrain_partition=y['Partition'] 
 
 print("anomalytrain_partition=",anomalytrain_partition)
@@ -222,7 +237,10 @@ result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,c
                                     brokerhost,brokerport,groupid,microserviceid)
 print(result)
 # Load the JSON object and extract the consumer id
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 consumeridmainpredict=y['Consumerid']
 print(consumeridmainpredict)
 
@@ -234,7 +252,10 @@ result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,produceto,companyna
                                myemail,mylocation,description,enabletls,
                                brokerhost,brokerport,numpartitions,replication,microserviceid)
 # Load the JSON and extract the producer id
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 topic=y['Topic']
 produceridmainpredict=y['ProducerId']
 print(produceridmainpredict)
@@ -246,7 +267,10 @@ result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,produceto,com
                                     brokerhost,brokerport,groupid,microserviceid)
 print(result)
 # Load the JSON and extract the consumer id
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 consumeridproducetopredict=y['Consumerid']
 print(consumeridproducetopredict)
 
@@ -259,7 +283,10 @@ result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,produceinputstreamt
                               enabletls,brokerhost,brokerport,
                               numpartitions,replication,microserviceid)
 # Load the JSON and get the producer id
-y = json.loads(result)
+try:
+  y = json.loads(result,strict='False')
+except Exception as e:
+  y = json.loads(result)
 topic=y['Topic']
 produceridinputstreamtestpredict=y['ProducerId']
 print(produceridinputstreamtestpredict)
