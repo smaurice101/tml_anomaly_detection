@@ -333,11 +333,11 @@ def performAnomalyDetection():
 # change this to any number
 numanomalyruns=1000
 
-for j in range(numpredictions):
-  try:    
-     performPredictionOptimization()
+for j in range(numanomalyruns):
+  try:   
+    performAnomalyDetection()
   except Exception as e:
-     print(e)   
-     continue   
+    print(e)
+    continue
 
 ```
