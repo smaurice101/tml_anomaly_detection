@@ -14,25 +14,25 @@ Pre-requisites:
 # For help email: support@otics.ca 
 
 # import Python Libraries
-import maads
+import maadstml
 
-# You may need to comment this out if NOT using jupyter notebook
-import nest_asyncio
+# Uncomment IF using jupyter notebook
+#import nest_asyncio
 
 import json
 
-# You may need to comment this out if NOT using jupyter notebook
-nest_asyncio.apply()
+# Uncomment IF using jupyter notebook
+#nest_asyncio.apply()
 
 # Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
 # VIPER and HPDE
-VIPERHOST="http://192.168.0.14"
+VIPERHOST="http://127.0.0.1"
 VIPERPORT=8000
-hpdehost="http://192.168.0.14"
+hpdehost="http://127.0.0.1"
 hpdeport=8001
 
 # Set Global variable for Viper confifuration file - change the folder path for your computer
-viperconfigfile="C:/MAADS/Golang/go/bin/viper.env"
+viperconfigfile="C:/viper/viper.env"
 
 #############################################################################################################
 #                                      STORE VIPER TOKEN
@@ -40,7 +40,7 @@ viperconfigfile="C:/MAADS/Golang/go/bin/viper.env"
 # to your location of admin.tok
 def getparams():
         
-     with open("c:/maads/golang/go/bin/admin.tok", "r") as f:
+     with open("c:/viper/admin.tok", "r") as f:
         VIPERTOKEN=f.read()
   
      return VIPERTOKEN
@@ -80,7 +80,7 @@ def performAnomalyDetection():
       description="Topic containing joined streams for Anomaly training"
 
       # Call MAADS python function to create joined stream topic
-      result=maads.vipercreatejointopicstreams(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedtopic,
+      result=maadstml.vipercreatejointopicstreams(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedtopic,
                           streamstojoin,companyname,myname,myemail,description,mylocation,
                           enabletls,brokerhost,brokerport,replication,numpartitions,microserviceid)
 
@@ -106,7 +106,7 @@ def performAnomalyDetection():
       # Kafka takes longer to response.  Here we tell the functiont o wait 10 seconds
       delay=10000
       # Call the Python function to produce data from all the streams
-      result=maads.viperproducetotopicstream(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedtopic,producerid,
+      result=maadstml.viperproducetotopicstream(VIPERTOKEN,VIPERHOST,VIPERPORT,joinedtopic,producerid,
                                               startingoffset,rollbackoffsets,enabletls,delay,brokerhost,
                                               brokerport,microserviceid)
 
@@ -132,7 +132,7 @@ def performAnomalyDetection():
       description="Topic needed for peer group analysis"
       # Create a topic that will store peer group data
       producetotopic="anomalydatatest10"
-      result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,myname,
+      result=maadstml.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,myname,
                                      myemail,mylocation,description,enabletls,
                                      brokerhost,brokerport,numpartitions,replication,microserviceid)
       # Load the JSON
@@ -147,7 +147,7 @@ def performAnomalyDetection():
 
       # Create another topic to store the peer groups for anomaly prediction
       peergrouptotopic="anomalypeergroup"
-      result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,peergrouptotopic,companyname,
+      result=maadstml.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,peergrouptotopic,companyname,
                                     myname,myemail,mylocation,description,enabletls,
                                     brokerhost,brokerport,numpartitions,replication,microserviceid)
       try:
@@ -163,7 +163,7 @@ def performAnomalyDetection():
       # If subscribing to a group and add group id here
       groupid=''
       description="This is a subscription for peer group analysis"
-      result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,
+      result=maadstml.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,producetotopic,companyname,
                                           myname,myemail,mylocation,description,
                                           brokerhost,brokerport,groupid,microserviceid)
       print(result)
@@ -177,7 +177,7 @@ def performAnomalyDetection():
 
       consumefrom = joinedtopic
       description="This is a subscription to consume from joined topic stream"
-      result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,companyname,
+      result=maadstml.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,companyname,
                                           myname,myemail,mylocation,description,
                                           brokerhost,brokerport,groupid,microserviceid)
       print(result)
@@ -218,7 +218,7 @@ def performAnomalyDetection():
       partition=stream_partition
 
       # Start Anomaly training 
-      result=maads.viperanomalytrain(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,produceto,
+      result=maadstml.viperanomalytrain(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,produceto,
                               producepeergroupto,produceridpeergroup,
                               consumeridproduceto, streamstoanalyse,companyname,consumerid,
                               producerid,flags,hpdehost,viperconfigfile, enabletls,partition,
@@ -237,7 +237,7 @@ def performAnomalyDetection():
 
       # Assign the name of the topic to consume the peer groups from
       consumefrom = "anomalypeergroup"
-      result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,companyname,
+      result=maadstml.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,companyname,
                                           myname,myemail,mylocation,description,
                                           brokerhost,brokerport,groupid,microserviceid)
       print(result)
@@ -253,7 +253,7 @@ def performAnomalyDetection():
       # FOR VIPERviz visualization
       produceto="anomalydataresults"
       description="Topic to store the anomaly results"
-      result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,produceto,companyname,myname,
+      result=maadstml.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,produceto,companyname,myname,
                                      myemail,mylocation,description,enabletls,
                                      brokerhost,brokerport,numpartitions,replication,microserviceid)
       # Load the JSON and extract the producer id
@@ -267,7 +267,7 @@ def performAnomalyDetection():
 
       # Subscribe to the anomaly data results - YOU CAN USE THIS CONSUMER ID 
       # IN VIPERviz visualization
-      result=maads.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,produceto,companyname,
+      result=maadstml.vipersubscribeconsumer(VIPERTOKEN,VIPERHOST,VIPERPORT,produceto,companyname,
                                           myname,myemail,mylocation,description,
                                           brokerhost,brokerport,groupid,microserviceid)
       print(result)
@@ -283,7 +283,7 @@ def performAnomalyDetection():
       consumeinputstream = joinedtopic
       # Create a topic for the input stream - this is your test data for anomaly detection
       produceinputstreamtest="inputstreamdata"
-      result=maads.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,produceinputstreamtest,
+      result=maadstml.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,produceinputstreamtest,
                                     companyname,myname,myemail,mylocation,description,
                                     enabletls,brokerhost,brokerport,
                                     numpartitions,replication,microserviceid)
@@ -320,7 +320,7 @@ def performAnomalyDetection():
       consumeridinputstream=consumeridjoinedtopic
 
       # Predict Anomalies
-      result2=maads.viperanomalypredict(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,produceto,
+      result2=maadstml.viperanomalypredict(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,produceto,
                                         consumeinputstream,produceinputstreamtest,
                                         produceridinputstreamtest, streamstoanalyse, 
                                         consumeridinputstream,companyname,consumeridmainpredict,
@@ -339,5 +339,6 @@ for j in range(numanomalyruns):
   except Exception as e:
     print(e)
     continue
+
 
 ```
