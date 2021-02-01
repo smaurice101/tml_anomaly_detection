@@ -296,6 +296,20 @@ def performAnomalyDetection():
       produceridinputstreamtestpredict=y['ProducerId']
       print(produceridinputstreamtestpredict)
 
+      ###########################################################################################################
+      #                                  CREATE A CONSUMER GROUP
+      #                       Use the Groupid in VIPERviz to consume from topic in parallel
+      #                       across hundreds or thousands of consumers 
+      consumergrouptopic="anomalydataresults"
+      groupname="salesgroup"
+      
+      result=maadstml.vipercreateconsumergroup(VIPERTOKEN,VIPERHOST,VIPERPORT,consumergrouptopic,groupname,
+                                      companyname,myname,myemail, description,mylocation,enabletls)
+      print(result) 
+      y = json.loads(result)
+      groupid=y['Groupid']
+      print(groupid)
+
       ############################################################################################################
       #                                     START ANOMALY PREDICTION
 
