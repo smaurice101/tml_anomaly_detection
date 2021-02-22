@@ -141,9 +141,9 @@ def performAnomalyDetection():
         y = json.loads(result,strict='False')
       except Exception as e:
         y = json.loads(result)
-      topic=y['Topic']
+      topic=y[0]['Topic']
       # Get the producer id for this topic and save it in a variable
-      produceridmain=y['ProducerId']
+      produceridmain=y[0]['ProducerId']
       print(produceridmain)
 
       # Create another topic to store the peer groups for anomaly prediction
@@ -155,9 +155,9 @@ def performAnomalyDetection():
         y = json.loads(result,strict='False')
       except Exception as e:
         y = json.loads(result)
-      topic=y['Topic']
+      topic=y[0]['Topic']
       # Get the producer id for this topic
-      produceridpeergroup=y['ProducerId']
+      produceridpeergroup=y[0]['ProducerId']
       print(produceridpeergroup)
 
       # Subscribe consumer to the topic just created with some information about yourself
@@ -262,8 +262,8 @@ def performAnomalyDetection():
         y = json.loads(result,strict='False')
       except Exception as e:
         y = json.loads(result)
-      topic=y['Topic']
-      produceridmainpredict=y['ProducerId']
+      topic=y[0]['Topic']
+      produceridmainpredict=y[0]['ProducerId']
       print(produceridmainpredict)
 
       # Subscribe to the anomaly data results - YOU CAN USE THIS CONSUMER ID 
@@ -293,8 +293,8 @@ def performAnomalyDetection():
         y = json.loads(result,strict='False')
       except Exception as e:
         y = json.loads(result)
-      topic=y['Topic']
-      produceridinputstreamtestpredict=y['ProducerId']
+      topic=y[0]['Topic']
+      produceridinputstreamtestpredict=y[0]['ProducerId']
       print(produceridinputstreamtestpredict)
 
       ###########################################################################################################
@@ -354,6 +354,7 @@ for j in range(numanomalyruns):
   except Exception as e:
     print(e)
     continue
+
 
 
 ```
